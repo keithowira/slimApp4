@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+
+use DI\Container;
+use Monolog\Handler\StreamHandler;
+use Monolog\Logger;
+use Monolog\Processor\UidProcessor;
+use Psr\Container\ContainerInterface;
+use Psr\Log\LoggerInterface;
+
+return function (Container $container) {
+    $container->set( LoggerInterface::class, function (ContainerInterface $container) {
+            $settings = $container->get('settings')['logger'];
+
+            $logger = new Logger($settings['name']);
+
+            $processor = new UidProcessor();
+            $logger->pushProcessor($processor);
+
+            $handler = new StreamHandler($settings['path'], $settings['level']);
+            $logger->pushHandler($handler);
+
+            return $logger;
+        },
+    );
+
+    $container ->get(LoggerInterface::class)->debug('example',['context'=>'message']);
+
+};
